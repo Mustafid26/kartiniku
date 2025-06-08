@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import "aos/dist/aos.css";
-import WorkshopCard from "./WorkshopCard";
+import WorkshopCard from "./workshopCard";
 
 export default function WorkshopSection({
     title,
