@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request, { params }) {
-  const { id } = params
+  const { id } = await params
 
   try {
     const kelas = await prisma.kelas.findUnique({
