@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Articles {
+  id         Int      @id @default(autoincrement())
+  title      String
+  user       Users    @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  userId     Int
+  slug       String   @unique
+  summary    String?
+  content    String?
+  image_url  String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model JawabanSurvey {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  survey      Survey?  @relation(fields: [surveyId], references: [id])
+  surveyId    Int?
+  jawaban     String?
+  waktu_jawab DateTime @default(now())
+}
+
+model JawabanUser {
+  id      String   @id
+  userId  Int?
+  soal    Soal?    @relation(fields: [soalId], references: [id])
+  soalId  Int?
+  kelasId Int?
+  jenis   JenisTes
+  jawaban Jawaban?
+  benar   Boolean?
+}
+
+model Kelas {
+  id          Int           @id @default(autoincrement())
+  nama_kelas  String
+  deskripsi   String?
+  materi      Materi[]
+  soal        Soal[]
+  survey      Survey[]
+  user_kelas  UserKelas[]
+  userProgres UserKelasProgres[]
+  nilai       Nilai[]
+}
+
+model Materi {
+  id      Int       @id @default(autoincrement())
+  kelas   Kelas?    @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  kelasId Int?
+  judul   String?
+  konten  String?
+  tipe    TipeKonten @default(teks)
+}
+
+model Nilai {
+  id         Int        @id @default(autoincrement())
+  user       Users      @relation(fields: [userId], references: [id])
+  userId     Int
+  kelas      Kelas      @relation(fields: [kelasId], references: [id])
+  kelasId    Int
+  jenis      JenisNilai
+  score      Int
+  created_at DateTime?  @default(now())
+  updated_at DateTime?  @updatedAt
+
+  @@unique([userId, kelasId, jenis])
+}
+
+model Soal {
+  id            Int         @id @default(autoincrement())
+  kelas         Kelas?      @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  kelasId       Int?
+  jenis         JenisTes
+  pertanyaan    String
+  opsi_a        String?
+  opsi_b        String?
+  opsi_c        String?
+  opsi_d        String?
+  jawaban_benar Jawaban
+  jawabanUser   JawabanUser[]
+}
+
+model Survey {
+  id        Int         @id @default(autoincrement())
+  kelas     Kelas?      @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  kelasId   Int?
+  pertanyaan String?
+  tipe      TipeSurvey  @default(text)
+  pilihan   String?
+  jawaban   JawabanSurvey[]
+}
+
+model Users {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  password   String
+  articles   Articles[]
+  nilai      Nilai[]
+  userKelas  UserKelas[]
+  progres    UserKelasProgres[]
+}
+
+model UserKelas {
+  id         Int       @id @default(autoincrement())
+  user       Users     @relation(fields: [userId], references: [id])
+  userId     Int
+  kelas      Kelas     @relation(fields: [kelasId], references: [id])
+  kelasId    Int
+  status     StatusBelajar @default(belum)
+  updated_at DateTime   @updatedAt
+
+  @@unique([userId, kelasId])
+}
+
+model UserKelasProgres {
+  id            Int       @id @default(autoincrement())
+  user          Users     @relation(fields: [userId], references: [id])
+  userId        Int
+  kelas         Kelas     @relation(fields: [kelasId], references: [id])
+  kelasId       Int
+  pretest_done  Boolean   @default(false)
+  materi_done   Boolean   @default(false)
+  posttest_done Boolean   @default(false)
+  survey_done   Boolean   @default(false)
+
+  @@unique([userId, kelasId])
+}
+
+enum JenisTes {
+  pretest
+  posttest
+}
+
+enum Jawaban {
+  A
+  B
+  C
+  D
+}
+
+enum TipeKonten {
+  teks
+  video
+  file
+}
+
+enum JenisNilai {
+  pretest
+  posttest
+  materi
+}
+
+enum TipeSurvey {
+  text
+  choice
+  rating
+}
+
+enum StatusBelajar {
+  belum
+  inprogress
+  selesai
+}
+
